@@ -47,10 +47,13 @@ var update = (function(text) {
     var context = canvas.getContext('2d');
 
     context.drawImage(img, 0, 0, width, height);
+    if (!text) {
+        return;
+    }
+
     context.textAlign = 'center';
     context.font = "20px Arial";
     var wrappedText = getWrappedText(context, text, width);
-console.log(wrappedText);
     if (!canFillWrappedText(context, wrappedText, height, 25)) {
         context.fillText('ERROR', width/2, height/2);
     } else {
@@ -58,3 +61,4 @@ console.log(wrappedText);
     }
 });
 
+update();
