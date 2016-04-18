@@ -16,8 +16,8 @@ var update = (function(text) {
 
             line += ' ';
         }
-        
-        if (line.length > 1) { 
+
+        if (line.length > 1) {
             ret.push(line);
         }
 
@@ -35,7 +35,7 @@ var update = (function(text) {
             context.fillText(wrappedText[n], maxWidth/2, y + lineHeight * n);
         }
     }
- 
+
     var img = document.getElementById('base');
     var width = img.width;
     var height = img.height;
@@ -61,4 +61,15 @@ var update = (function(text) {
     }
 });
 
-update();
+window.onload = function() {
+    update();
+};
+
+var save = function() {
+    var canvas = document.getElementById('canvas');
+    var dataURL = canvas.toDataURL();
+    sendPost("save.php", {
+        data: dataURL
+    });
+}
+
