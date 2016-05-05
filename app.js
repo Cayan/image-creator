@@ -66,7 +66,6 @@ var update = (function(text) {
     var size = 8;
     while (size < 40) {
         context.font = size + "px Arial";
-        console.log(context.font);
         var wrappedText = getWrappedText(context, text, width);
         if (!canFillWrappedText(context, wrappedText, height, width, 25)) {
             size--;
