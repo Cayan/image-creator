@@ -4,11 +4,12 @@ var update = (function(text) {
         var words = text.split(' ');
         var line = '';
 
+        // This function needs a refactor.
         for (var n = 0; n < words.length; n++) {
             var testLine = line + words[n];
             var metrics = context.measureText(testLine);
             if (metrics.width > maxWidth && n > 0) {
-                ret.push(line.slice(0, -1));
+                ret.push(line.slice(0, -1).trim());
                 line = words[n];
             } else {
                 line = testLine;
@@ -18,18 +19,27 @@ var update = (function(text) {
         }
 
         if (line.length > 1) {
-            ret.push(line);
+            ret.push(line.trim());
         }
 
         return ret;
     }
 
-    function canFillWrappedText(context, wrappedText, maxHeight, lineHeight) {
-        return (lineHeight * wrappedText.length) <= maxHeight;
+    function canFillWrappedText(context, wrappedText, maxHeight, maxWidth, lineHeight) {
+        // in case we have a one-word line, larger than the available width
+        for (text of wrappedText) {
+            var metrics = context.measureText(text);
+            if (metrics.width > maxWidth) {
+                return false;
+            }
+        }
+
+        return (lineHeight * (wrappedText.length + 1)) <= maxHeight;
     }
 
     function fillWrappedText(context, wrappedText, maxWidth, maxHeight, lineHeight) {
-        var textHeight = Math.floor(wrappedText.length / 2) * lineHeight;
+        var margin = 0.5; // half the lineHeight
+        var textHeight = (Math.floor(wrappedText.length / 2) - margin) * lineHeight;
         var y = (maxHeight / 2) - textHeight;
         for (var n = 0; n < wrappedText.length; n++) {
             context.fillText(wrappedText[n], maxWidth/2, y + lineHeight * n);
@@ -52,13 +62,21 @@ var update = (function(text) {
     }
 
     context.textAlign = 'center';
-    context.font = "20px Arial";
-    var wrappedText = getWrappedText(context, text, width);
-    if (!canFillWrappedText(context, wrappedText, height, 25)) {
-        context.fillText('ERROR', width/2, height/2);
-    } else {
-        fillWrappedText(context, wrappedText, width, height, 25);
+
+    var size = 8;
+    while (size < 40) {
+        context.font = size + "px Arial";
+        console.log(context.font);
+        var wrappedText = getWrappedText(context, text, width);
+        if (!canFillWrappedText(context, wrappedText, height, width, 25)) {
+            size--;
+            break;
+        }
+
+        size++;
     }
+
+    fillWrappedText(context, wrappedText, width, height, 25);
 });
 
 window.onload = function() {
