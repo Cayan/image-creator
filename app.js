@@ -1,48 +1,75 @@
+
 var update = (function(text) {
+    const FONT_SIZE = 32;
+    const MARGIN_WIDTH = 300;
+    const MARGIN_HEIGHT = 50;
+
+    function checkTextWidth(context, text, maxWidth) {
+        var metrics = context.measureText(text);
+        return (metrics.width + MARGIN_WIDTH < maxWidth);
+    }
+
     function getWrappedText(context, text, maxWidth) {
         var ret = [];
-        var words = text.split(' ');
-        var line = '';
+        var words = text.trim().split(' ');
+        var line = [];
 
         // This function needs a refactor.
         for (var n = 0; n < words.length; n++) {
-            var testLine = line + words[n];
-            var metrics = context.measureText(testLine);
-            if (metrics.width > maxWidth && n > 0) {
-                ret.push(line.slice(0, -1).trim());
-                line = words[n];
+            var testLine = line;
+            testLine.push(words[n]);
+
+            if (n == 0) {
+                line = testLine;
+                continue;
+            }
+
+            if (!checkTextWidth(context, testLine.join(' '), maxWidth)) {
+                ret.push(line.join(' '));
+                line = [];
             } else {
                 line = testLine;
             }
-
-            line += ' ';
         }
 
-        if (line.length > 1) {
-            ret.push(line.trim());
-        }
-
+        ret.push(line.join(' '));
         return ret;
     }
 
-    function canFillWrappedText(context, wrappedText, maxHeight, maxWidth, lineHeight) {
-        // in case we have a one-word line, larger than the available width
-        for (text of wrappedText) {
-            var metrics = context.measureText(text);
-            if (metrics.width > maxWidth) {
-                return false;
-            }
-        }
+    function getTextHeight(context, text) {
+        var div = document.createElement("div");
+            div.innerHTML = text;
+            div.style.position = 'absolute';
+            div.style.top  = '-9999px';
+            div.style.left = '-9999px';
+            div.style.fontSize = FONT_SIZE + 'pt';
 
-        return (lineHeight * (wrappedText.length + 1)) <= maxHeight;
+        document.body.appendChild(div);
+        var height = div.offsetHeight;
+        document.body.removeChild(div);
+
+        return height;
     }
 
-    function fillWrappedText(context, wrappedText, maxWidth, maxHeight, lineHeight) {
-        var margin = 0.5; // half the lineHeight
-        var textHeight = (Math.floor(wrappedText.length / 2) - margin) * lineHeight;
-        var y = (maxHeight / 2) - textHeight;
+    function fillWrappedText(context, wrappedText, maxWidth, maxHeight) {
+        var xCenter = maxWidth / 2;
+
+        var totalHeight = 0;
         for (var n = 0; n < wrappedText.length; n++) {
-            context.fillText(wrappedText[n], maxWidth/2, y + lineHeight * n);
+            totalHeight += getTextHeight(context, wrappedText[n]);
+        }
+
+        var initialY = maxHeight - (2 * MARGIN_HEIGHT) - totalHeight;
+        var accumulatedHeight = 0;
+        for (var n = 0; n < wrappedText.length; n++) {
+            var text = wrappedText[n];
+            var textHeight = getTextHeight(context, text);
+
+            var x = xCenter;
+            var y = initialY + accumulatedHeight;
+            context.fillText(text, x, y);
+
+            accumulatedHeight += textHeight;
         }
     }
 
@@ -62,20 +89,10 @@ var update = (function(text) {
     }
 
     context.textAlign = 'center';
+    context.font = FONT_SIZE + "px Arial";
 
-    var size = 8;
-    while (size < 40) {
-        context.font = size + "px Arial";
-        var wrappedText = getWrappedText(context, text, width);
-        if (!canFillWrappedText(context, wrappedText, height, width, 25)) {
-            size--;
-            break;
-        }
-
-        size++;
-    }
-
-    fillWrappedText(context, wrappedText, width, height, 25);
+    var wrappedText = getWrappedText(context, text, width);
+    fillWrappedText(context, wrappedText, width, height);
 });
 
 window.onload = function() {
