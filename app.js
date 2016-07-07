@@ -2,7 +2,7 @@
 var update = (function(text) {
     const FONT_SIZE = 32;
     const MARGIN_WIDTH = 300;
-    const MARGIN_HEIGHT = 50;
+    const MARGIN_HEIGHT = 15;
 
     function checkTextWidth(context, text, maxWidth) {
         var metrics = context.measureText(text);
@@ -59,7 +59,7 @@ var update = (function(text) {
             totalHeight += getTextHeight(context, wrappedText[n]);
         }
 
-        var initialY = maxHeight - (2 * MARGIN_HEIGHT) - totalHeight;
+        var initialY = maxHeight - (MARGIN_HEIGHT) - totalHeight;
         var accumulatedHeight = 0;
         for (var n = 0; n < wrappedText.length; n++) {
             var text = wrappedText[n];
